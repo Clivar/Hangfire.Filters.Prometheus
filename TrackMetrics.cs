@@ -18,12 +18,12 @@ namespace Hangfire.Jobs.Prometheus
         
         private static readonly Counter JobDurationsTotal = Metrics
             .CreateCounter("hangfire_job_duration_seconds_total", 
-                "The total duration a job took on this server", 
+                "The total amount of seconds a job took on this server", 
                 "jobname", "recurringjobid");
         
         private static readonly Counter JobDurationsCount = Metrics
                     .CreateCounter("hangfire_job_duration_seconds_count", 
-                        "The total duration a job took on this server", 
+                        "The total of seconds a job took on this server", 
                         "jobname", "recurringjobid");
         
         private readonly string _jobName;
@@ -33,8 +33,9 @@ namespace Hangfire.Jobs.Prometheus
         /// Tracks the metrics for a job, with the focus on using the statistics in AlertManager
         /// </summary>
         /// <param name="jobName">The unique identifier of the job. Defaults to the method signature without namespace.</param>
-        /// <param name="deadline">Time in seconds since the last success when it is unexpected for the job to not have been performed at least once.</param>
-        public TrackMetrics(string jobName = null, int deadline = 0)
+        /// <param name="deadline">Time in seconds since the last success.</param>
+        /// <param name="timelimit">Amount of time in seconds of the expected maximum duration</param>
+        public TrackMetrics(string jobName = null, int deadline = 0, int timelimit = 0)
         {
             _jobName = jobName;
             _deadline = deadline;
@@ -70,15 +71,19 @@ namespace Hangfire.Jobs.Prometheus
             context.Items["DurationTimer"] = JobDurationsTotal.WithLabels(jobName, recurringJobId).NewTimer();
         }
 
-        public void OnPerformed(PerformedContext filterContext)
+        public void OnPerformed(PerformedContext context)
         {
-            if (!filterContext.Items.ContainsKey("DurationTimer"))
+            if (!context.Items.ContainsKey("DurationTimer"))
             {
                 throw new InvalidOperationException("No expected duration timer was found");
             }
 
-            var timer = (IDisposable)filterContext.Items["DurationTimer"];
+            var timer = (IDisposable)context.Items["DurationTimer"];
             timer.Dispose();
+
+            var jobName = GetJobName(context.BackgroundJob);
+            var recurringJobId = GetRecurringJobIdIfApplicable(context.Connection, context.BackgroundJob.Id);
+            JobDurationsCount.WithLabels(jobName, recurringJobId).Inc();
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hangfire.Jobs.Prometheus", "Hangfire.Jobs.Prometheus.csproj", "{AA47CDEF-B43A-4450-B007-0EFCEC6F5B42}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hangfire.Filters.Prometheus", "Hangfire.Filters.Prometheus.csproj", "{AA47CDEF-B43A-4450-B007-0EFCEC6F5B42}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
