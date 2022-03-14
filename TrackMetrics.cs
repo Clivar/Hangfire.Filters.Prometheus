@@ -19,15 +19,16 @@ namespace Hangfire.Jobs.Prometheus
         private static readonly Counter JobDurationsTotal = Metrics
             .CreateCounter("hangfire_job_duration_seconds_total", 
                 "The total amount of seconds a job took on this server", 
-                "jobname", "recurringjobid");
+                "jobname", "recurringjobid", "timelimit");
         
         private static readonly Counter JobDurationsCount = Metrics
                     .CreateCounter("hangfire_job_duration_seconds_count", 
                         "The total of seconds a job took on this server", 
-                        "jobname", "recurringjobid");
+                        "jobname", "recurringjobid", "timelimit");
         
         private readonly string _jobName;
         private readonly int _deadline;
+        private readonly int _timelimit;
 
         /// <summary>
         /// Tracks the metrics for a job, with the focus on using the statistics in AlertManager
@@ -39,6 +40,7 @@ namespace Hangfire.Jobs.Prometheus
         {
             _jobName = jobName;
             _deadline = deadline;
+            _timelimit = timelimit;
         }
 
         private string GetJobName(BackgroundJob backgroundJob)
@@ -83,7 +85,7 @@ namespace Hangfire.Jobs.Prometheus
 
             var jobName = GetJobName(context.BackgroundJob);
             var recurringJobId = GetRecurringJobIdIfApplicable(context.Connection, context.BackgroundJob.Id);
-            JobDurationsCount.WithLabels(jobName, recurringJobId).Inc();
+            JobDurationsCount.WithLabels(jobName, recurringJobId, _timelimit.ToString()).Inc();
         }
     }
 }
